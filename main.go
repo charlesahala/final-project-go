@@ -7,6 +7,6 @@ import (
 
 func main() {
 	database.StartDB()
-	r := router.StartService()
+	r := router.StartApp()
 	r.Run(":8080")
 }

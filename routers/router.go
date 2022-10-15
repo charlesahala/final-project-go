@@ -6,28 +6,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func StartService() *gin.Engine {
+func StartApp() *gin.Engine {
 	router := gin.Default()
 
-	router.POST("/users/register", controllers.CreateUser)
-	router.GET("/orders", controllers.GetUser)
-	router.PUT("/users", controllers.UpdateUser)
-	router.DELETE("/users", controllers.DeleteUser)
+	userRouter := router.Group("/users")
+	{
+		userRouter.POST("/register", controllers.UserRegister)
+		userRouter.POST("/login", controllers.UserLogin)
+		userRouter.PUT("/", controllers.UserUpdate)
+		userRouter.DELETE("/", controllers.UserDelete)
+	}
 
-	router.POST("/photos", controllers.CreatePhoto)
-	router.GET("/photos", controllers.GetPhoto)
-	router.PUT("/photos/:photoId", controllers.UpdatePhoto)
-	router.DELETE("/photos/:photoId", controllers.DeletePhoto)
+	// photoRouter := router.Group("/photos")
+	// {
+	// 	photoRouter.POST("/", controllers.CreatePhoto)
+	// 	photoRouter.GET("/", controllers.GetPhoto)
+	// 	photoRouter.PUT("/:photoId", controllers.UpdatePhoto)
+	// 	photoRouter.DELETE("/:photoId", controllers.DeletePhoto)
+	// }
 
-	router.POST("/comments", controllers.CreateComment)
-	router.GET("/comments", controllers.GetComment)
-	router.PUT("/comments/:commentId", controllers.UpdateComment)
-	router.DELETE("/comments/:commentId", controllers.DeleteComment)
+	// commentRouter := router.Group("/comments")
+	// {
+	// 	commentRouter.POST("/", controllers.CreateComment)
+	// 	commentRouter.GET("/", controllers.GetComment)
+	// 	commentRouter.PUT("/:commentId", controllers.UpdateComment)
+	// 	commentRouter.DELETE("/:commentId", controllers.DeleteComment)
+	// }
 
-	router.POST("/socialmedias", controllers.CreateSocialMedia)
-	router.GET("/socialmedias", controllers.GetSocialMedia)
-	router.PUT("/socialmedias/:socialMediaId", controllers.UpdateSocialMedia)
-	router.DELETE("/socialmedias/:socialMediaId", controllers.DeleteSocialMedia)
+	// socialMediasRouter := router.Group("/socialmedias")
+	// {
+	// 	socialMediasRouter.POST("/", controllers.CreateSocialMedia)
+	// 	socialMediasRouter.GET("/", controllers.GetSocialMedia)
+	// 	socialMediasRouter.PUT("/:socialMediaId", controllers.UpdateSocialMedia)
+	// 	socialMediasRouter.DELETE("/:socialMediaId", controllers.DeleteSocialMedia)
+	// }
 
 	return router
 }
