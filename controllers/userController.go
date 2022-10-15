@@ -79,7 +79,7 @@ func UserLogin(c *gin.Context) {
 		return
 	}
 
-	token := helpers.GenerateToken(User.User_id, User.Email)
+	token := helpers.GenerateToken(User.Email, User.Password)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
@@ -87,7 +87,7 @@ func UserLogin(c *gin.Context) {
 }
 
 
-func UserUpdate(ctx *gin.Context) {
+func UserPut(ctx *gin.Context) {
 
 }
 

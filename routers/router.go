@@ -13,7 +13,7 @@ func StartApp() *gin.Engine {
 	{
 		userRouter.POST("/register", controllers.UserRegister)
 		userRouter.POST("/login", controllers.UserLogin)
-		userRouter.PUT("/", controllers.UserUpdate)
+		userRouter.PUT("/", controllers.UserPut)
 		userRouter.DELETE("/", controllers.UserDelete)
 	}
 
