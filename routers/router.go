@@ -2,6 +2,7 @@ package router
 
 import (
 	"final-project-go/controllers"
+	"final-project-go/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,17 +14,17 @@ func StartApp() *gin.Engine {
 	{
 		userRouter.POST("/register", controllers.UserRegister)
 		userRouter.POST("/login", controllers.UserLogin)
-		userRouter.PUT("/", controllers.UserPut)
-		userRouter.DELETE("/", controllers.UserDelete)
+		userRouter.PUT("/:userId", middlewares.UserAuthentication(), controllers.UserPut)
+		userRouter.DELETE("/", middlewares.UserAuthentication(), controllers.UserDelete)
 	}
 
-	// photoRouter := router.Group("/photos")
-	// {
-	// 	photoRouter.POST("/", controllers.CreatePhoto)
+	photoRouter := router.Group("/photos")
+	{
+		photoRouter.POST("/", middlewares.UserAuthentication(), controllers.CreatePhoto)
 	// 	photoRouter.GET("/", controllers.GetPhoto)
 	// 	photoRouter.PUT("/:photoId", controllers.UpdatePhoto)
 	// 	photoRouter.DELETE("/:photoId", controllers.DeletePhoto)
-	// }
+	}
 
 	// commentRouter := router.Group("/comments")
 	// {

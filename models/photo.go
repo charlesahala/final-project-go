@@ -8,13 +8,14 @@ import (
 )
 
 type Photo struct {
-	Photo_id   uint      `gorm:"primaryKey" json:"photo_id"`
-	Title      string    `gorm:"not null" json:"title" form:"title" valid:"required~title is required"`
-	Caption    string    `json:"caption" form:"caption"`
-	Photo_url  string    `gorm:"not null" json:"photo_url" form:"photo_url" valid:"required~photo url is required"`
-	User_id    []User    `gorm:"foreignKey:User_id" json:"user_id"`
-	Created_at time.Time `json:"createdAt"`
-	Updated_at time.Time `json:"updatedAt"`
+	ID        uint   `gorm:"primaryKey" json:"id"`
+	Title     string `gorm:"not null" json:"title" form:"title"`
+	Caption   string `json:"caption" form:"caption"`
+	PhotoURL  string `gorm:"not null" json:"photo_url" form:"photo_url"`
+	UserID    uint
+	User      User      `gorm:"references:ID"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func (p *Photo) BeforeCreate(tx *gorm.DB) (err error) {

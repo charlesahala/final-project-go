@@ -1,25 +1,25 @@
-package middleware
+package middlewares
 
 import (
 	"final-project-go/helpers"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 )
 
 func UserAuthentication() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		verifyToken, err := helpers.VerifyToken(c)
-		_ = verifyToken
-
-		if err != nil {
+		if verifyToken, err := helpers.VerifyToken(c); err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error":   "Unauthenticated (Token Tidak Sesuai)",
+				"error":   "Unauthenticated",
 				"message": err.Error(),
 			})
 			return
+		} else {
+			c.Set("userData", verifyToken)
+			c.Next()
 		}
-		c.Set("userData", verifyToken)
-		c.Next()
 	}
 }

@@ -9,13 +9,13 @@ import (
 )
 
 type User struct {
-	User_id    uint      `gorm:"primaryKey" json:"user_id"`
-	Username   string    `gorm:"not null;uniqueIndex" json:"username" form:"username" valid:"required~username is required"`
-	Email      string    `gorm:"not null;uniqueIndex" json:"email" form:"email" valid:"required~email is required,email~invalid email format"`
-	Password   string    `gorm:"not null" json:"password" form:"password" valid:"required~password is required,minstringlength(6)~Password has to have a minimum length of 6 characters"`
-	Age        int       `gorm:"not null,where:age > 7" json:"age" form:"age" valid:"required~age is required and must be 8+ years old"`
-	Created_at time.Time `json:"createdAt"`
-	Updated_at time.Time `json:"updateedAt"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Email     string    `gorm:"not null;uniqueIndex" json:"email" form:"email" valid:"email~invalid email format"`
+	Username  string    `gorm:"not null;uniqueIndex" json:"username" form:"username"`
+	Password  string    `gorm:"not null" json:"password" form:"password" valid:"required,minstringlength(6)~Your password is required and has to have a minimum length of 6 characters"`
+	Age       int       `gorm:"not null" json:"age" form:"age" valid:"range(8|100)~Minimum age is 8 years old"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {

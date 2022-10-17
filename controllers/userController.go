@@ -4,10 +4,12 @@ import (
 	"final-project-go/database"
 	"final-project-go/helpers"
 	"final-project-go/models"
+	"strconv"
 
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 var (
@@ -17,7 +19,7 @@ var (
 func UserRegister(c *gin.Context) {
 	db := database.GetDB()
 	contentType := helpers.GetContentType(c)
-	_, _ = db, contentType
+	// _, _ = db, contentType
 	User := models.User{}
 
 	if contentType == appJSON {
@@ -37,9 +39,9 @@ func UserRegister(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"age": User.Age,
-		"email": User.Email,
-		"id": User.User_id,
+		"age":      User.Age,
+		"email":    User.Email,
+		"id":       User.ID,
 		"username": User.Username,
 	})
 }
@@ -63,7 +65,7 @@ func UserLogin(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Unauthorized",
+			"error":   "Unauthorized",
 			"message": "invalid email/password",
 		})
 		return
@@ -73,24 +75,89 @@ func UserLogin(c *gin.Context) {
 
 	if !comparePass {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Unauthorized",
+			"error":   "Unauthorized",
 			"message": "invalid email/password",
 		})
 		return
 	}
 
-	token := helpers.GenerateToken(User.Email, User.Password)
+	token := helpers.GenerateToken(User.ID, User.Email)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 	})
 }
 
+func UserPut(c *gin.Context) {
+	db := database.GetDB()
+	userData := c.MustGet("userData").(jwt.MapClaims)
+	contentType := helpers.GetContentType(c)
+	User := models.User{}
 
-func UserPut(ctx *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error":   "bad request",
+			"message": "failed to convert userId to int",
+		})
+	}
+	userID := uint(userData["id"].(float64))
 
+	if contentType == appJSON {
+		c.ShouldBindJSON(&User)
+	} else {
+		c.ShouldBind(&User)
+	}
+
+	User.ID = userID
+	User.ID = uint(userId)
+
+	err = db.Debug().First(&User, User.ID).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error":   "bad request",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	err = db.Debug().Where("id = ?", userId).Updates(models.User{Email: User.Email, Username: User.Username}).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error":   "bad request",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":         User.ID,
+		"email":      User.Email,
+		"username":   User.Username,
+		"age":        User.Age,
+		"updated_at": User.UpdatedAt,
+	})
 }
 
-func UserDelete(ctx *gin.Context) {
+func UserDelete(c *gin.Context) {
+	db := database.GetDB()
+	userData := c.MustGet("userData").(jwt.MapClaims)
+	User := models.User{}
 
+	userID := uint(userData["id"].(float64))
+
+	err := db.Debug().Where("id = ?", userID).Delete(&User).Error
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error":   "bad request",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Your account has been successfully deleted",
+	})
 }
