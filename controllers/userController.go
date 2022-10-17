@@ -112,19 +112,17 @@ func UserPut(c *gin.Context) {
 	User.ID = userID
 	User.ID = uint(userId)
 
-	err = db.Debug().First(&User, User.ID).Error
+	// err = db.Debug().First(&User, userID).Error
 
-	if err != nil {
+	if err := db.Model(&User).Where("id = ?", userId).Updates(models.User{Email: User.Email, Username: User.Username}).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error":   "bad request",
+			"error":   "Bad Request",
 			"message": err.Error(),
 		})
 		return
 	}
 
-	err = db.Debug().Where("id = ?", userId).Updates(models.User{Email: User.Email, Username: User.Username}).Error
-
-	if err != nil {
+	if err := db.Debug().First(&User, userID).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
 			"message": err.Error(),
