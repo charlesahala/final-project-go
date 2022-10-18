@@ -12,14 +12,21 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func CreatePhoto(c *gin.Context) {
+func CreateSocMed(c *gin.Context) {
 	db := database.GetDB()
+	contentType := helpers.GetContentType(c)
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	userID := uint(userData["id"].(float64))
-	Photo := models.Photo{}
+	SocialMedia := models.SocialMedia{}
 
-	if Photo.UserID == userID {
-		err := db.Debug().Create(&Photo).Error
+	if contentType == appJSON {
+		c.ShouldBindJSON(&SocialMedia)
+	} else {
+		c.ShouldBind(&SocialMedia)
+	}
+
+	if SocialMedia.UserID == userID {
+		err := db.Debug().Create(&SocialMedia).Error
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Bad Request",
@@ -29,7 +36,7 @@ func CreatePhoto(c *gin.Context) {
 		}
 	}
 
-	err := c.ShouldBindJSON(&Photo)
+	err := c.ShouldBindJSON(&SocialMedia)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "Bad Request",
@@ -38,25 +45,17 @@ func CreatePhoto(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, Photo)
-	// gin.H{
-	// "id":         Photo.ID,
-	// "title":      Photo.Title,
-	// "caption":    Photo.Caption,
-	// "photo_url":  Photo.PhotoURL,
-	// "user_id":    Photo.UserID,
-	// "created_at": Photo.CreatedAt,
-	// }
+	c.JSON(http.StatusCreated, SocialMedia)
 }
 
-func GetPhoto(c *gin.Context) {
+func GetSocMed(c *gin.Context) {
 	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	userID := uint(userData["id"].(float64))
-	Photo := models.Photo{}
+	SocialMedia := models.SocialMedia{}
 	User := models.User{}
 
-	err := db.Model(&Photo).Find(&Photo).Error
+	err := db.Model(&SocialMedia).Find(&SocialMedia).Error
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": err.Error(),
@@ -64,18 +63,19 @@ func GetPhoto(c *gin.Context) {
 		return
 	}
 
-	var PhotoDatas = []models.Photo{}
+	var SocMedDatas = []models.SocialMedia{}
 	userDatas := models.User{
-		Email:    User.Email,
+		ID:       User.ID,
 		Username: User.Username,
+		// ProfileImageURL: User.ProfileImageURL,
 	}
 
 	condition := false
-	photoDatas := models.Photo{}
-	for i, Photo := range PhotoDatas {
-		if Photo.UserID == userID {
+	socmedDatas := models.SocialMedia{}
+	for i, SocialMedia := range SocMedDatas {
+		if SocialMedia.UserID == userID {
 			condition = true
-			photoDatas = PhotoDatas[i]
+			socmedDatas = SocMedDatas[i]
 			break
 		}
 	}
@@ -89,18 +89,18 @@ func GetPhoto(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"Photo": photoDatas,
-		"User":  userDatas,
+		"SocMed": socmedDatas,
+		"User":    userDatas,
 	})
 }
 
-func UpdatePhoto(c *gin.Context) {
+func UpdateSocMed(c *gin.Context) {
 	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	contentType := helpers.GetContentType(c)
-	Photo := models.Photo{}
+	SocialMedia := models.SocialMedia{}
 
-	photoId, err := strconv.Atoi(c.Param("photoId"))
+	socialMediaId, err := strconv.Atoi(c.Param("socialMediaId"))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
@@ -111,15 +111,15 @@ func UpdatePhoto(c *gin.Context) {
 	userID := uint(userData["id"].(float64))
 
 	if contentType == appJSON {
-		c.ShouldBindJSON(&Photo)
+		c.ShouldBindJSON(&SocialMedia)
 	} else {
-		c.ShouldBind(&Photo)
+		c.ShouldBind(&SocialMedia)
 	}
 
-	Photo.UserID = userID
-	Photo.ID = uint(photoId)
+	SocialMedia.UserID = userID
+	SocialMedia.ID = uint(socialMediaId)
 
-	if err := db.Model(&Photo).Where("id = ?", photoId).Updates(models.Photo{Title: Photo.Title, Caption: Photo.Caption, PhotoURL: Photo.PhotoURL}).Error; err != nil {
+	if err := db.Model(&SocialMedia).Where("id = ?", socialMediaId).Updates(models.SocialMedia{Name: SocialMedia.Name, SocialMediaURL: SocialMedia.SocialMediaURL}).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "Bad Request",
 			"message": err.Error(),
@@ -127,7 +127,7 @@ func UpdatePhoto(c *gin.Context) {
 		return
 	}
 
-	if err := db.Debug().First(&Photo, userID).Error; err != nil {
+	if err := db.Debug().First(&SocialMedia, userID).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
 			"message": err.Error(),
@@ -135,26 +135,25 @@ func UpdatePhoto(c *gin.Context) {
 		return
 	}
 
-	photoData := models.Photo {
-		ID: Photo.ID,
-		Title: Photo.Title,
-		Caption: Photo.Caption,
-		PhotoURL: Photo.PhotoURL,
-		UserID: Photo.UserID,
-		UpdatedAt: Photo.UpdatedAt,
+	socmedData := models.SocialMedia{
+		ID: SocialMedia.ID,
+		Name: SocialMedia.Name,
+		SocialMediaURL: SocialMedia.SocialMediaURL,
+		UserID: SocialMedia.UserID,
+		UpdatedAt: SocialMedia.UpdatedAt,
 	}
 
-	c.JSON(http.StatusOK, photoData)
+	c.JSON(http.StatusOK, socmedData)
 }
 
-func DeletePhoto(c *gin.Context) {
+func DeleteSocMed(c *gin.Context) {
 	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
-	Photo := models.Photo{}
+	SocialMedia := models.SocialMedia{}
 
 	userID := uint(userData["id"].(float64))
 
-	err := db.Debug().Where("id = ?", userID).Delete(&Photo).Error
+	err := db.Debug().Where("id = ?", userID).Delete(&SocialMedia).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -165,6 +164,6 @@ func DeletePhoto(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Your photo has been successfully deleted",
+		"message": "Your social media has been successfully deleted",
 	})
 }

@@ -98,7 +98,7 @@ func UserPut(c *gin.Context) {
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
-			"message": "failed to convert userId to int",
+			"message": "failed to convert userId",
 		})
 	}
 	userID := uint(userData["id"].(float64))
@@ -147,7 +147,7 @@ func UserDelete(c *gin.Context) {
 	userID := uint(userData["id"].(float64))
 
 	err := db.Debug().Where("id = ?", userID).Delete(&User).Error
-	
+
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",

@@ -12,14 +12,21 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func CreatePhoto(c *gin.Context) {
+func CreateComment(c *gin.Context) {
 	db := database.GetDB()
+	contentType := helpers.GetContentType(c)
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	userID := uint(userData["id"].(float64))
-	Photo := models.Photo{}
+	Comment := models.Comment{}
 
-	if Photo.UserID == userID {
-		err := db.Debug().Create(&Photo).Error
+	if contentType == appJSON {
+		c.ShouldBindJSON(&Comment)
+	} else {
+		c.ShouldBind(&Comment)
+	}
+
+	if Comment.UserID == userID {
+		err := db.Debug().Create(&Comment).Error
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Bad Request",
@@ -29,7 +36,7 @@ func CreatePhoto(c *gin.Context) {
 		}
 	}
 
-	err := c.ShouldBindJSON(&Photo)
+	err := c.ShouldBindJSON(&Comment)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "Bad Request",
@@ -38,25 +45,24 @@ func CreatePhoto(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, Photo)
-	// gin.H{
-	// "id":         Photo.ID,
-	// "title":      Photo.Title,
-	// "caption":    Photo.Caption,
-	// "photo_url":  Photo.PhotoURL,
-	// "user_id":    Photo.UserID,
-	// "created_at": Photo.CreatedAt,
-	// }
+	c.JSON(http.StatusCreated, gin.H{
+		"id":         Comment.ID,
+		"message":    Comment.Message,
+		"photo_id":   Comment.PhotoID,
+		"user_id":    Comment.UserID,
+		"created_at": Comment.CreatedAt,
+	})
 }
 
-func GetPhoto(c *gin.Context) {
+func GetComment(c *gin.Context) {
 	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	userID := uint(userData["id"].(float64))
-	Photo := models.Photo{}
+	Comment := models.Comment{}
 	User := models.User{}
+	Photo := models.Photo{}
 
-	err := db.Model(&Photo).Find(&Photo).Error
+	err := db.Model(&Comment).Find(&Comment).Error
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": err.Error(),
@@ -64,18 +70,26 @@ func GetPhoto(c *gin.Context) {
 		return
 	}
 
-	var PhotoDatas = []models.Photo{}
+	var CommentDatas = []models.Comment{}
 	userDatas := models.User{
+		ID:       User.ID,
 		Email:    User.Email,
 		Username: User.Username,
 	}
+	photoDatas := models.Photo{
+		ID:       Photo.ID,
+		Title:    Photo.Title,
+		Caption:  Photo.Caption,
+		PhotoURL: Photo.PhotoURL,
+		UserID:   Photo.UserID,
+	}
 
 	condition := false
-	photoDatas := models.Photo{}
-	for i, Photo := range PhotoDatas {
-		if Photo.UserID == userID {
+	commentDatas := models.Comment{}
+	for i, Comment := range CommentDatas {
+		if Comment.UserID == userID {
 			condition = true
-			photoDatas = PhotoDatas[i]
+			commentDatas = CommentDatas[i]
 			break
 		}
 	}
@@ -89,18 +103,19 @@ func GetPhoto(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"Photo": photoDatas,
-		"User":  userDatas,
+		"Comment": commentDatas,
+		"User":    userDatas,
+		"Photo":   photoDatas,
 	})
 }
 
-func UpdatePhoto(c *gin.Context) {
+func UpdateComment(c *gin.Context) {
 	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	contentType := helpers.GetContentType(c)
-	Photo := models.Photo{}
+	Comment := models.Comment{}
 
-	photoId, err := strconv.Atoi(c.Param("photoId"))
+	commentId, err := strconv.Atoi(c.Param("commentId"))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
@@ -111,15 +126,15 @@ func UpdatePhoto(c *gin.Context) {
 	userID := uint(userData["id"].(float64))
 
 	if contentType == appJSON {
-		c.ShouldBindJSON(&Photo)
+		c.ShouldBindJSON(&Comment)
 	} else {
-		c.ShouldBind(&Photo)
+		c.ShouldBind(&Comment)
 	}
 
-	Photo.UserID = userID
-	Photo.ID = uint(photoId)
+	Comment.UserID = userID
+	Comment.ID = uint(commentId)
 
-	if err := db.Model(&Photo).Where("id = ?", photoId).Updates(models.Photo{Title: Photo.Title, Caption: Photo.Caption, PhotoURL: Photo.PhotoURL}).Error; err != nil {
+	if err := db.Model(&Comment).Where("id = ?", commentId).Updates(models.Comment{Message: Comment.Message}).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "Bad Request",
 			"message": err.Error(),
@@ -127,7 +142,7 @@ func UpdatePhoto(c *gin.Context) {
 		return
 	}
 
-	if err := db.Debug().First(&Photo, userID).Error; err != nil {
+	if err := db.Debug().First(&Comment, userID).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
 			"message": err.Error(),
@@ -135,26 +150,32 @@ func UpdatePhoto(c *gin.Context) {
 		return
 	}
 
-	photoData := models.Photo {
-		ID: Photo.ID,
-		Title: Photo.Title,
-		Caption: Photo.Caption,
-		PhotoURL: Photo.PhotoURL,
-		UserID: Photo.UserID,
-		UpdatedAt: Photo.UpdatedAt,
+	commentData := models.Comment{
+		ID: Comment.ID,
+		Message: Comment.Message,
+		PhotoID: Comment.PhotoID,
+		UserID: Comment.UserID,
+		UpdatedAt: Comment.UpdatedAt,
 	}
 
-	c.JSON(http.StatusOK, photoData)
+	c.JSON(http.StatusOK, commentData)
+// 		gin.H{
+// 		"id": Comment.ID,
+// 		"message": Comment.Message,
+// 		"photo_id": Comment.PhotoID,
+// 		"user_id": Comment.UserID,
+// 		"updated_at": Comment.UpdatedAt,
+// 	})
 }
 
-func DeletePhoto(c *gin.Context) {
+func DeleteComment(c *gin.Context) {
 	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
-	Photo := models.Photo{}
+	Comment := models.Comment{}
 
 	userID := uint(userData["id"].(float64))
 
-	err := db.Debug().Where("id = ?", userID).Delete(&Photo).Error
+	err := db.Debug().Where("id = ?", userID).Delete(&Comment).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -165,6 +186,6 @@ func DeletePhoto(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Your photo has been successfully deleted",
+		"message": "Your comment has been successfully deleted",
 	})
 }
