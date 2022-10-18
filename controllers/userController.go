@@ -147,6 +147,7 @@ func UserDelete(c *gin.Context) {
 	userID := uint(userData["id"].(float64))
 
 	err := db.Debug().Where("id = ?", userID).Delete(&User).Error
+	
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
