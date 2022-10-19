@@ -101,7 +101,13 @@ func UpdateSocMed(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, SocialMedia)
+	c.JSON(http.StatusOK, gin.H{
+		"id": SocialMedia.ID,
+		"name": SocialMedia.Name,
+		"social_media_url": SocialMedia.SocialMediaURL,
+		"user_id": SocialMedia.UserID,
+		"updated_at": SocialMedia.UpdatedAt,
+	})
 }
 
 func DeleteSocMed(c *gin.Context) {

@@ -114,7 +114,7 @@ func UpdateComment(c *gin.Context) {
 			"message": err.Error(),
 		})
 	}
-	
+
 	// type CommentData struct{
 	// 	ID uint
 	// 	Title string
@@ -133,10 +133,9 @@ func UpdateComment(c *gin.Context) {
 	// }
 
 	c.JSON(http.StatusOK, gin.H{
-			"id": Comment.ID,
-			"message": Comment.Message,
-			"user_id": Comment.UserID,
-			"updated_at": Comment.UpdatedAt,
+		"id":         Comment.ID,
+		"message":    Comment.Message,
+		"user_id":    Comment.UserID,
 	})
 
 }

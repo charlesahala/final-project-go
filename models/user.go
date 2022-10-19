@@ -14,8 +14,8 @@ type User struct {
 	Username     string        `gorm:"not null;uniqueIndex" json:"username" form:"username"`
 	Password     string        `gorm:"not null" json:"password,omitempty" form:"password" valid:"required,minstringlength(6)~Your password is required and has to have a minimum length of 6 characters"`
 	Age          int           `gorm:"not null" json:"age,omitempty" form:"age" valid:"range(8|100)~Minimum age is 8 years old"`
-	CreatedAt    *time.Time     `json:"created_at,omitempty"`
-	UpdatedAt    *time.Time     `json:"updated_at,omitempty"`
+	CreatedAt    *time.Time    `json:"created_at,omitempty"`
+	UpdatedAt    *time.Time    `json:"updated_at,omitempty"`
 	Photos       []Photo       `json:"-"`
 	Comments     []Comment     `json:"-"`
 	SocialMedias []SocialMedia `json:"-"`

@@ -10,6 +10,6 @@ type Photo struct {
 	UserID    uint
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	User      *User      `json:",omitempty"`
+	User      *User       `json:",omitempty" `
 	Comments  []Comment  `json:"-"`
 }
