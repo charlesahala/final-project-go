@@ -17,6 +17,7 @@ func CreateComment(c *gin.Context) {
 	contentType := helpers.GetContentType(c)
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	userID := uint(userData["id"].(float64))
+	Photo := models.Photo{}
 	Comment := models.Comment{}
 
 	if contentType == appJSON {
@@ -25,18 +26,29 @@ func CreateComment(c *gin.Context) {
 		c.ShouldBind(&Comment)
 	}
 
+	photoID := uint(Comment.PhotoID)
+
+	err := db.Debug().First(&Photo, photoID).Error
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"error":   "not found",
+			"message": "photo with that id not found",
+		})
+		return
+	}
+
 	Comment.UserID = userID
 
-	if Comment.UserID == userID {
-		err := db.Debug().Create(&Comment).Error
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "Bad Request",
-				"message": err.Error(),
-			})
-			return
-		}
+	// if Comment.UserID == userID {
+	err = db.Debug().Create(&Comment).Error
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Bad Request",
+			"message": err.Error(),
+		})
+		return
 	}
+	// }
 
 	c.JSON(http.StatusCreated, gin.H{
 		"id":         Comment.ID,
@@ -49,57 +61,21 @@ func CreateComment(c *gin.Context) {
 
 func GetComment(c *gin.Context) {
 	db := database.GetDB()
+	Comments := []models.Comment{}
 	userData := c.MustGet("userData").(jwt.MapClaims)
-	userID := uint(userData["id"].(float64))
-	Comment := models.Comment{}
-	User := models.User{}
-	Photo := models.Photo{}
 
-	err := db.Model(&Comment).Find(&Comment).Error
+	userID := uint(userData["id"].(float64))
+
+	err := db.Debug().Preload("User").Preload("Photo").Where("user_id = ?", userID).Find(&Comments).Error
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"error":   "bad request",
 			"message": err.Error(),
 		})
 		return
 	}
 
-	var CommentDatas = []models.Comment{}
-	userDatas := models.User{
-		ID:       User.ID,
-		Email:    User.Email,
-		Username: User.Username,
-	}
-	photoDatas := models.Photo{
-		ID:       Photo.ID,
-		Title:    Photo.Title,
-		Caption:  Photo.Caption,
-		PhotoURL: Photo.PhotoURL,
-		UserID:   Photo.UserID,
-	}
-
-	condition := false
-	commentDatas := models.Comment{}
-	for i, Comment := range CommentDatas {
-		if Comment.UserID == userID {
-			condition = true
-			commentDatas = CommentDatas[i]
-			break
-		}
-	}
-
-	if !condition {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"error":   "data not found",
-			"message": "photos data not found",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"Comment": commentDatas,
-		"User":    userDatas,
-		"Photo":   photoDatas,
-	})
+	c.JSON(http.StatusOK, Comments)
 }
 
 func UpdateComment(c *gin.Context) {
@@ -144,21 +120,21 @@ func UpdateComment(c *gin.Context) {
 	}
 
 	commentData := models.Comment{
-		ID: Comment.ID,
-		Message: Comment.Message,
-		PhotoID: Comment.PhotoID,
-		UserID: Comment.UserID,
+		ID:        Comment.ID,
+		Message:   Comment.Message,
+		PhotoID:   Comment.PhotoID,
+		UserID:    Comment.UserID,
 		UpdatedAt: Comment.UpdatedAt,
 	}
 
 	c.JSON(http.StatusOK, commentData)
-// 		gin.H{
-// 		"id": Comment.ID,
-// 		"message": Comment.Message,
-// 		"photo_id": Comment.PhotoID,
-// 		"user_id": Comment.UserID,
-// 		"updated_at": Comment.UpdatedAt,
-// 	})
+	// 		gin.H{
+	// 		"id": Comment.ID,
+	// 		"message": Comment.Message,
+	// 		"photo_id": Comment.PhotoID,
+	// 		"user_id": Comment.UserID,
+	// 		"updated_at": Comment.UpdatedAt,
+	// 	})
 }
 
 func DeleteComment(c *gin.Context) {

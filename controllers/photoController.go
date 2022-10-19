@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
 )
 
 func CreatePhoto(c *gin.Context) {
@@ -55,7 +56,9 @@ func GetPhoto(c *gin.Context) {
 
 	userID := uint(userData["id"].(float64))
 
-	err := db.Debug().Where("user_id = ?", userID).Find(&Photos).Error
+	err := db.Debug().Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("ID", "Email", "Username")
+	}).Where("user_id = ?", userID).Find(&Photos).Error
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"error":   "bad request",

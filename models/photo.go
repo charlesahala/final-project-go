@@ -9,8 +9,8 @@ type Photo struct {
 	Caption   string `json:"caption" form:"caption"`
 	PhotoURL  string `gorm:"not null" json:"photo_url" form:"photo_url"`
 	UserID    uint
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 	User      User
 	Comments  []Comment `json:"-"`
 }

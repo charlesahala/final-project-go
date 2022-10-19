@@ -11,7 +11,7 @@ type Comment struct {
 	ID     uint `gorm:"primaryKey" json:"id"`
 	UserID uint
 	// User      User `gorm:"foreignKey:ID"`
-	PhotoID uint
+	PhotoID uint `json:"photo_id"`
 	// Photo     Photo     `gorm:"foreignKey:ID"`
 	Message   string    `gorm:"not null" json:"message" form:"message"`
 	CreatedAt time.Time `json:"createdAt"`
