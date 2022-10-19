@@ -25,6 +25,8 @@ func CreateComment(c *gin.Context) {
 		c.ShouldBind(&Comment)
 	}
 
+	Comment.UserID = userID
+
 	if Comment.UserID == userID {
 		err := db.Debug().Create(&Comment).Error
 		if err != nil {
@@ -34,15 +36,6 @@ func CreateComment(c *gin.Context) {
 			})
 			return
 		}
-	}
-
-	err := c.ShouldBindJSON(&Comment)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error":   "Bad Request",
-			"message": err.Error(),
-		})
-		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{

@@ -8,11 +8,11 @@ import (
 )
 
 type Comment struct {
-	ID        uint `gorm:"primaryKey" json:"id"`
-	UserID    uint
-	User      User `gorm:"references:ID"`
-	PhotoID   uint
-	Photo     Photo     `gorm:"references:ID"`
+	ID     uint `gorm:"primaryKey" json:"id"`
+	UserID uint
+	// User      User `gorm:"foreignKey:ID"`
+	PhotoID uint
+	// Photo     Photo     `gorm:"foreignKey:ID"`
 	Message   string    `gorm:"not null" json:"message" form:"message"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

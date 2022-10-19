@@ -22,19 +22,19 @@ func StartApp() *gin.Engine {
 	{
 		photoRouter.Use(middlewares.UserAuthentication())
 		photoRouter.POST("/", controllers.CreatePhoto)
-	// 	photoRouter.GET("/", controllers.GetPhoto)
-	// 	photoRouter.PUT("/:photoId", middlewares.UserAuthorization(), controllers.UpdatePhoto)
-	// 	photoRouter.DELETE("/:photoId", middlewares.UserAuthorization(), controllers.DeletePhoto)
+		photoRouter.GET("/", controllers.GetPhoto)
+		photoRouter.PUT("/:photoId", middlewares.PhotoAuthorization(), controllers.UpdatePhoto)
+		photoRouter.DELETE("/:photoId", middlewares.PhotoAuthorization(), controllers.DeletePhoto)
 	}
 
-	// commentRouter := router.Group("/comments")
-	// {
-	// 	commentRouter.Use(middlewares.UserAuthentication(), middlewares.UserAuthorization())
-	// 	commentRouter.POST("/", controllers.CreateComment)
+	commentRouter := router.Group("/comments")
+	{
+		commentRouter.Use(middlewares.UserAuthentication(), middlewares.CommentAuthorization())
+		commentRouter.POST("/", controllers.CreateComment)
 	// 	commentRouter.GET("/", controllers.GetComment)
 	// 	commentRouter.PUT("/:commentId", controllers.UpdateComment)
 	// 	commentRouter.DELETE("/:commentId", controllers.DeleteComment)
-	// }
+	}
 
 	// socialMediasRouter := router.Group("/socialmedias")
 	// {
