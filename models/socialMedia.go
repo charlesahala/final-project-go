@@ -9,7 +9,7 @@ type SocialMedia struct {
 	Name           string `gorm:"not null" json:"name" form:"name"`
 	SocialMediaURL string `gorm:"not null" json:"social_media_url" form:"social_media_url"`
 	UserID         uint
-	// User           User      `gorm:"foreignKey:ID"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
+	CreatedAt      *time.Time `json:"created_at,omitempty"`
+	UpdatedAt      *time.Time `json:"updated_at,omitempty"`
+	User           *User      `json:",omitempty"`
 }

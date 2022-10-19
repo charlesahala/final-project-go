@@ -31,19 +31,19 @@ func StartApp() *gin.Engine {
 	{
 		commentRouter.Use(middlewares.UserAuthentication(), middlewares.CommentAuthorization())
 		commentRouter.POST("/", controllers.CreateComment)
-	// 	commentRouter.GET("/", controllers.GetComment)
-	// 	commentRouter.PUT("/:commentId", controllers.UpdateComment)
-	// 	commentRouter.DELETE("/:commentId", controllers.DeleteComment)
+		commentRouter.GET("/", controllers.GetComment)
+		commentRouter.PUT("/:commentId", controllers.UpdateComment)
+		commentRouter.DELETE("/:commentId", controllers.DeleteComment)
 	}
 
-	// socialMediasRouter := router.Group("/socialmedias")
-	// {
-	// 	socialMediasRouter.Use(middlewares.UserAuthentication(), middlewares.UserAuthorization())
-	// 	socialMediasRouter.POST("/", controllers.CreateSocMed)
-	// 	socialMediasRouter.GET("/", controllers.GetSocMed)
-	// 	socialMediasRouter.PUT("/:socialMediaId", controllers.UpdateSocMed)
-	// 	socialMediasRouter.DELETE("/:socialMediaId", controllers.DeleteSocMed)
-	// }
+	socialMediasRouter := router.Group("/socialmedias")
+	{
+		socialMediasRouter.Use(middlewares.UserAuthentication(), middlewares.SocMedAuthorization())
+		socialMediasRouter.POST("/", controllers.CreateSocMed)
+		socialMediasRouter.GET("/", controllers.GetSocMed)
+		socialMediasRouter.PUT("/:socialMediaId", controllers.UpdateSocMed)
+		socialMediasRouter.DELETE("/:socialMediaId", controllers.DeleteSocMed)
+	}
 
 	return router
 }

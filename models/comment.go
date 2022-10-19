@@ -8,14 +8,14 @@ import (
 )
 
 type Comment struct {
-	ID     uint `gorm:"primaryKey" json:"id"`
-	UserID uint
-	// User      User `gorm:"foreignKey:ID"`
-	PhotoID uint `json:"photo_id"`
-	// Photo     Photo     `gorm:"foreignKey:ID"`
-	Message   string    `gorm:"not null" json:"message" form:"message"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID        uint `gorm:"primaryKey" json:"id"`
+	UserID    uint
+	PhotoID   uint       `json:"photo_id"`
+	Message   string     `gorm:"not null" json:"message" form:"message"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	User      *User      `json:",omitempty"`
+	Photo     *Photo     `json:",omitempty"`
 }
 
 func (c *Comment) BeforeCreate(tx *gorm.DB) (err error) {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
 )
 
 func CreateComment(c *gin.Context) {
@@ -66,7 +67,11 @@ func GetComment(c *gin.Context) {
 
 	userID := uint(userData["id"].(float64))
 
-	err := db.Debug().Preload("User").Preload("Photo").Where("user_id = ?", userID).Find(&Comments).Error
+	err := db.Debug().Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("ID", "Email", "Username")
+	}).Preload("Photo", func(db *gorm.DB) *gorm.DB {
+		return db.Select("ID", "Title", "Caption", "PhotoURL", "UserID")
+	}).Where("user_id = ?", userID).Find(&Comments).Error
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"error":   "bad request",
@@ -80,18 +85,17 @@ func GetComment(c *gin.Context) {
 
 func UpdateComment(c *gin.Context) {
 	db := database.GetDB()
-	userData := c.MustGet("userData").(jwt.MapClaims)
-	contentType := helpers.GetContentType(c)
 	Comment := models.Comment{}
+	contentType := helpers.GetContentType(c)
+	userData := c.MustGet("userData").(jwt.MapClaims)
 
-	commentId, err := strconv.Atoi(c.Param("commentId"))
+	commentID, err := strconv.Atoi(c.Param("commentId"))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
-			"message": "failed to convert photoId",
+			"message": "failed to convert",
 		})
 	}
-
 	userID := uint(userData["id"].(float64))
 
 	if contentType == appJSON {
@@ -101,40 +105,40 @@ func UpdateComment(c *gin.Context) {
 	}
 
 	Comment.UserID = userID
-	Comment.ID = uint(commentId)
+	Comment.ID = uint(commentID)
 
-	if err := db.Model(&Comment).Where("id = ?", commentId).Updates(models.Comment{Message: Comment.Message}).Error; err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error":   "Bad Request",
-			"message": err.Error(),
-		})
-		return
-	}
-
-	if err := db.Debug().First(&Comment, userID).Error; err != nil {
+	err = db.Debug().Where("id=?", commentID).Updates(models.Comment{Message: Comment.Message}).Error
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
 			"message": err.Error(),
 		})
-		return
 	}
+	
+	// type CommentData struct{
+	// 	ID uint
+	// 	Title string
+	// 	Caption string
+	// 	PhotoURL string
+	// 	UserID uint
+	// 	UpdatedAt string
+	// }
 
-	commentData := models.Comment{
-		ID:        Comment.ID,
-		Message:   Comment.Message,
-		PhotoID:   Comment.PhotoID,
-		UserID:    Comment.UserID,
-		UpdatedAt: Comment.UpdatedAt,
-	}
+	// commentData := models.Comment{
+	// 	ID:        Comment.ID,
+	// 	Message:   Comment.Message,
+	// 	PhotoID:   Comment.PhotoID,
+	// 	UserID:    Comment.UserID,
+	// 	UpdatedAt: Comment.UpdatedAt,
+	// }
 
-	c.JSON(http.StatusOK, commentData)
-	// 		gin.H{
-	// 		"id": Comment.ID,
-	// 		"message": Comment.Message,
-	// 		"photo_id": Comment.PhotoID,
-	// 		"user_id": Comment.UserID,
-	// 		"updated_at": Comment.UpdatedAt,
-	// 	})
+	c.JSON(http.StatusOK, gin.H{
+			"id": Comment.ID,
+			"message": Comment.Message,
+			"user_id": Comment.UserID,
+			"updated_at": Comment.UpdatedAt,
+	})
+
 }
 
 func DeleteComment(c *gin.Context) {
@@ -142,10 +146,19 @@ func DeleteComment(c *gin.Context) {
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	Comment := models.Comment{}
 
+	commentID, err := strconv.Atoi(c.Param("commentId"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error":   "bad request",
+			"message": "failed to convert",
+		})
+	}
+
 	userID := uint(userData["id"].(float64))
+	Comment.UserID = userID
+	Comment.ID = uint(commentID)
 
-	err := db.Debug().Where("id = ?", userID).Delete(&Comment).Error
-
+	err = db.Debug().Where("id = ?", commentID).Delete(&Comment).Error
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",

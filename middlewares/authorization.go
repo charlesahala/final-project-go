@@ -110,3 +110,23 @@ func CommentAuthorization() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func SocMedAuthorization() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userData := c.MustGet("userData").(jwt.MapClaims)
+		userID := uint(userData["id"].(float64))
+		SocialMedia := models.SocialMedia{}
+
+		SocialMedia.UserID = userID
+
+		if SocialMedia.UserID != userID {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "unauthorized",
+				"message": "you are not allowed to access this data",
+			})
+			return
+		}
+
+		c.Next()
+	}
+}
